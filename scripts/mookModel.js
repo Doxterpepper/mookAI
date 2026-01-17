@@ -184,13 +184,44 @@ export class MookModel
 	_attack (action_) { throw "Game system not supported"; }
 
 	// Do not override
-	get gridDistance () { return game.scenes.active.data.gridDistance; }
-	get hasMele () { return this.settings.useMele && this._hasMele; }
-	get hasRanged () { return this.settings.useRanged && this._hasRanged; }
-	get hasSight () { return this.token.hasSight; }
-	get hasVision () { return this.settings.useSight && this.hasSight; }
+	
+	/*
+	 * Get grid distance. This is the localized distance units so could be feet, meters, or something else.
+	 * NOTE: Not sure if this is correct, there was no units associated with this so I assume it was the localized
+	 *   unit.
+	 */
+	get gridDistance() { return game.scenes.active.grid.distance; }
+	
+	/**
+	 * Does the mook token have a melee attack? true on yes, false on no.
+	 * Note: Spelled wrong? I see this being a problem.
+	 */
+	get hasMele() { return this.settings.useMele && this._hasMele; }
+	
+	/** 
+	 * Does the mook have a ranged attack.
+	*/
+	get hasRanged() { return this.settings.useRanged && this._hasRanged; }
+	
+	/**
+	 * Get if the token can see.
+	 */
+	get hasSight() { return this.token.hasSight; }
+	
+	/**
+	 * Get if the token has vision. Different from being able to see in that there may be no vision for the token?
+	 */
+	get hasVision() { return this.settings.useSight && this.hasSight; }
+	
+	/**
+	 * Get the token object.
+	 */
 	get token () { return this._token; }
 
+	/**
+	 * Add a target to the target history for the token.
+	 * @param {} target_ 
+	 */
 	addTarget (target_) { this._targetHistory.push (target_); }
 	get firstTarget () { return this._targetHistory.length === 0 ? null : this._targetHistory[0]; }
 	get lastTarget () { return this._targetHistory.length === 0 ? null : this._targetHistory[this._targetHistory.length - 1]; }
@@ -449,7 +480,7 @@ class MookModel5e extends MookModel
 	// todo: evaluate units
 	get time ()
 	{
-		let speed = parseInt (this.token.actor.data.data.attributes.movement.walk, 10);
+		let speed = parseInt (this.token.actor.system.attributes.movement.walk, 10);
 		
 		if (! speed)
 			speed = 30;

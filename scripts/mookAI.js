@@ -184,6 +184,7 @@ export class MookAI
 
 	ready ()
 	{
+		console.log("Setting up");
 		if (! game.user.isGM)
 		{
 			// todo?: let heroes have mooks
@@ -198,16 +199,20 @@ export class MookAI
 			this.updateTokens (changes_);
 		});
 
-		Hooks.on ("createCombatant", (combatant_, config_, id_) => {
-			this.addCombatant (id_, combatant_.data.tokenId);
+		Hooks.on("createCombatant", (combatant_, config_, userId) => {
+			console.log("createCombatant hook");
+			this.addCombatant (combatant_.combat.id, combatant_.tokenId);
 		});
 		Hooks.on ("deleteCombatant", (combatant_, config_, id_) => {
+			console.log("deleteCombatant hook");
 			this.deleteCombatant (id_, combatant_.data.tokenId);
 		});
 		Hooks.on ("createCombat", (combat_, config_, id_) => {
+			console.log("createCombat hook");
 			this.combatStart (combat_);
 		});
 		Hooks.on ("deleteCombat", (combat_, config_, id_) => {
+			console.log("deleteCombat hook");
 			this.combatEnd (combat_);
 		});
 		Hooks.on ("updateScene", (...args) => { this.handleSceneChange () });
@@ -314,8 +319,11 @@ export class MookAI
 
 	combatStart (combat_)
 	{
-		if (combat_.data.scene !== game.scenes.active.id)
-			return;
+		if (combat_.scene !== game.scenes.active.id)
+		{
+			console.warn("Not active scene for combat!");
+			//return;
+		}
 
 		if (this.combats.get (combat_.id))
 		{
