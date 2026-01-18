@@ -1,3 +1,3 @@
-import { initAI } from "./mookAI.js"
+import {initAI} from './mookAI.js';
 
-Hooks.once ('init', initAI);
+Hooks.once('init', initAI);
