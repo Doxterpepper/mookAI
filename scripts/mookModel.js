@@ -112,6 +112,33 @@ export class MookModel
 		this.settings = settings_;
 		this._token = token_;
 
+		let filterWeaponType = weaponChar => {
+			return this._token.actor.items.filter(item => {
+				if (item.type !== 'weapon') {
+					return false;
+				}
+
+				const weaponTypeStr = item.system.type.value;
+				return typeof (weaponTypeStr) === "string" && weaponTypeStr.slice(-1) === weaponChar;
+			})
+		}
+
+		//this.rangedWeapons = filterWeaponType('R');
+		
+		/*this._token.actor.items.filter(el => {
+			if (el.type === 'weapon') {
+				const weaponTypeStr = el.system.type.value;
+				//
+				// TODO: Not thrilled with this. fInd a better way to determine a ranged weapon.
+				//
+				if (typeof(weaponTypeStr) === "string" && weaponTypeStr.slice(-1) == 'R') {
+					return true;
+				}
+				return false;
+			}
+			//item.system.type[-1].lower() == 'R'
+		});*/
+
 		this._actions = new Array ();
 		this._targetHistory = new Array ();
 
@@ -196,12 +223,12 @@ export class MookModel
 	 * Does the mook token have a melee attack? true on yes, false on no.
 	 * Note: Spelled wrong? I see this being a problem.
 	 */
-	get hasMele() { return this.settings.useMele && this._hasMele; }
+	get hasMele() { return this.settings.useMele }
 	
 	/** 
 	 * Does the mook have a ranged attack.
 	*/
-	get hasRanged() { return this.settings.useRanged && this._hasRanged; }
+	get hasRanged() { return this.settings.useRanged }
 	
 	/**
 	 * Get if the token can see.
@@ -235,7 +262,6 @@ export class MookModel
 	getHealthPercent (token_) { return this.getCurrentHealth (token_) / this.getMaxHealth (token_); }
 	// todo: Advanced weapon selection
 	get meleWeapon () { return this.hasMele ? this.meleWeapons[0] : null; }
-	get rangedWeapon () { return this.hasRanged ? this.rangedWeapons[0] : null; }
 	get zoomsPerTurn () { return 1; }
 
 	// Extensions must override these methods
@@ -279,10 +305,10 @@ class MookModel5e extends MookModel
 		if (! this.canAttack)
 			return;
 
-		const name = action_.data.weapon.data.name;
+		const name = action_.data.weapon.name;
 
 		this._actions.filter (a => a.type === "attack" && a.can ()).forEach (a => {
-			if (a.data.duration === "full")
+			if (a.duration === "full")
 			{
 				if (this.actionsUsed >= this.settings.actionsPerTurn) return;
 
@@ -293,7 +319,7 @@ class MookModel5e extends MookModel
 				// todo: a.act is doAttack
 				a.act ();
 			}
-			else if (a.data.duration === "bonus")
+			else if (a.duration === "bonus")
 			{
 				if (this.bonusActionUsed) return;
 
@@ -358,7 +384,7 @@ class MookModel5e extends MookModel
 
 		const takeAction = (arr, str) =>
 		{
-			const actions = arr.filter (a => a.data.duration === str);
+			const actions = arr.filter (a => a.duration === str);
 
 			if (actions.length !== 0)
 				return actions[0].act ();
@@ -390,14 +416,18 @@ class MookModel5e extends MookModel
 	get meleWeapons ()
 	{
 		return this.token.actor.itemTypes.weapon.filter (w => {
-			return w.hasAttack && w.data.data.actionType === "mwak";
+			return w.hasAttack && w.actionType === "mwak";
 		});
 	}
 
 	get rangedWeapons ()
 	{
-		return this.token.actor.itemTypes.weapon.filter (w => {
-			return w.hasAttack && w.data.data.actionType === "rwak";
+		return this.token.actor.itemTypes.weapon.filter(w => {
+		
+			const weaponTypeStr = item.system.type.value;
+			return typeof (weaponTypeStr) === "string" && weaponTypeStr.slice(-1) === weaponChar;
+			//return w.hasAttack && w.actionType === "rwak";
+
 		});
 	}
 
@@ -406,14 +436,22 @@ class MookModel5e extends MookModel
 		return this.meleWeapons.length > 0;
 	}
 
+	/**
+	 * Probably deprecating this? I don't know if this makes sense to have. If a token "has ranged" why care
+	 * if it has a weapon? Foundry seems to have changed it's model regarding weapon attacks since this was first
+	 * written.
+	 */
 	get _hasRanged ()
 	{
 		return this.rangedWeapons.length > 0;
 	}
 
+	/**
+	 * Probably deprecating this? See ranged for logic.
+	 */
 	get meleRange ()
 	{
-		const dist = this.meleWeapon.data.data?.range?.value;
+		const dist = this.meleWeapon?.range?.value;
 
 		if (! dist) return this.settings.standardMeleWeaponTileRange;
 
@@ -422,7 +460,12 @@ class MookModel5e extends MookModel
 
 	get rangedRange ()
 	{
-		const dist = this.rangedWeapon.data.data?.range?.value;
+		const rangedWeapon = this.rangedWeapon;
+		const dist = null;
+		if (rangedWeapon)
+		{
+			dist = rangedWeapon.range.value;
+		}
 
 		if (! dist) return this.settings.standardRangedWeaponTileRange;
 
@@ -460,11 +503,11 @@ class MookModel5e extends MookModel
 	// Get various token data
 	getCurrentHealth (token_ = this.token)
 	{
-		return token_.actor.data.data.attributes.hp.value;
+		return token_.actor.system.attributes.hp.value;
 	}
 	getMaxHealth (token_ = this.token)
 	{
-		return token_.actor.data.data.attributes.hp.max;
+		return token_.actor.system.attributes.hp.max;
 	}
 
 	get hasDashAction () { return this.settings.dashActionsPerTurn > 0; }

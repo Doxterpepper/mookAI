@@ -53,7 +53,7 @@ export class Mook
 		});
 
 		this.pcWarning = "<p style=\"color:red\">Warning: Token is owned by a player!</p>";
-		this.debug = false;
+		this.debug = true;
 	}
 
 	async startTurn ()
@@ -79,7 +79,7 @@ export class Mook
 		this.pathManager.clearAll ();
 
 		this._visibleTargets = game.combat.combatants.filter (combatant => {
-			const id = combatant.data.tokenId;
+			const id = combatant.tokenId;
 			// Even mooks won't target themselves on purpose
 			if (id === this.token.id) return false;
 
@@ -95,7 +95,7 @@ export class Mook
 			if (this.mookModel.hasVision && ! this.canSee (token.id)) return false;
 
 			return true;
-		}).map (c => { return canvas.tokens.get (c.data.tokenId); });
+		}).map (c => { return canvas.tokens.get (c.tokenId); });
 
 		// Todo: compute paths between tokens when one moves and then select paths here. 
 		for (let t of this.visibleTargets)
@@ -228,17 +228,17 @@ export class Mook
 				break;
 			case (ActionType.ROTATE):
 				if (this.debug) console.log ("Rotating");
-				await this.rotate (action.data);
+				await this.rotate (action);
 				break;
 			case (ActionType.FACE):
 				if (this.debug) console.log ("Rotating to face target");
-				await this.rotate (this.degreesToTarget (action.data));
+				await this.rotate (this.degreesToTarget (action));
 				break;
 			case (ActionType.MOVE):
 				if (this.debug)
 					console.log ("Moving from (%f, %f) to (%f, %f)",
 								this.point.x, this.point.y, action.data.x, action.data.y);
-				await this.move (action.data);
+				await this.move (action);
 				break;
 			case (ActionType.EXPLORE):
 				if (this.isExploreDisabled)
@@ -307,7 +307,7 @@ export class Mook
 			case (ActionType.TRAVERSE):
 				if (this.debug) console.log ("Traversing");
 
-				if (action.cost > 0)
+				if (action.data.cost > 0)
 				{
 					this.utility.path = action.data.path;
 					this.utility.highlightPoints (action.data.path.path.map (s => s.origin));
@@ -349,7 +349,7 @@ export class Mook
 					this.handleFailure (new Abort ("User aborted plan"));
 				}
 
-				if (action.cost > 0)
+				if (action.data.cost > 0)
 				{
 					this.utility.clearHighlights ();
 					if (! await this.utility.traverse (action.data.dist, this.rotationDelay, this.moveDelay))
@@ -357,7 +357,7 @@ export class Mook
 				}
 			}
 
-			this.time -= action.cost ? action.cost : 0;
+			this.time -= action.data.cost ? action.data.cost : 0;
 		}
 
 		let str = "mookAI | Unknown failure";
@@ -460,7 +460,7 @@ export class Mook
 
 		let error = false;
 
-		await this.rotate (this.segment.radialDistToSegment (segment_, this.token.data.rotation, AngleTypes.DEG));
+		await this.rotate (this.segment.radialDistToSegment (segment_, this.token.rotation, AngleTypes.DEG));
 		await this.tokenDoc.update ({ x: segment_.point.px, y: segment_.point.py }).catch (err => {
 			ui.notifications.warn (err);
 			error = true;
@@ -574,7 +574,7 @@ export class Mook
 
 	get point () { return this._segment.point; }
 
-	get rotation () { return this.token.data.rotation; }
+	get rotation () { return this.token.rotation; }
 
 	get rotationDelay ()
 	{
@@ -592,7 +592,7 @@ export class Mook
 	get token () { return this._token; }
 	get tokenDoc () { return game.scenes.active.tokens.get(this._token.id) }
 
-	get tokenLocked () { token.data.lockRotation; }
+	get tokenLocked () { token.lockRotation; }
 
 	get visibleTargets () { return this._visibleTargets; }
 }

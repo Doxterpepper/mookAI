@@ -205,7 +205,7 @@ export class MookAI
 		});
 		Hooks.on ("deleteCombatant", (combatant_, config_, id_) => {
 			console.log("deleteCombatant hook");
-			this.deleteCombatant (id_, combatant_.data.tokenId);
+			this.deleteCombatant (id_, combatant_.tokenId);
 		});
 		Hooks.on ("createCombat", (combat_, config_, id_) => {
 			console.log("createCombat hook");
@@ -334,12 +334,12 @@ export class MookAI
 		let newMooks = new Map ();
 
 		combat_.combatants.forEach (combatant => {
-			const newToken = canvas.tokens.get (combatant.data.tokenId);
+			const newToken = canvas.tokens.get (combatant.tokenId);
 
 			if (! newToken)
 			    return;
 
-			newMooks.set (combatant.data.tokenId, new Mook (newToken, this.metric));
+			newMooks.set (combatant.tokenId, new Mook (newToken, this.metric));
 		});
 
 		this._combats.set (combat_.id, newMooks);
