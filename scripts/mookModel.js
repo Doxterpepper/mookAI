@@ -36,62 +36,62 @@ Actions of ActionType 10+ are handled by system-specific MookModels. There shoul
 export const ActionType
 	= {
 	// To my knowledge, these are system-agnostic, but if not, message me, and I'll see if I can support your system!
-		HALT: 0,
-		SENSE: 1,
-		PLAN: 2,
-		ROTATE: 3,
-		FACE: 4,
-		// Move to a point
-		// todo: remove?
-		MOVE: 5,
-		// Move forward one tile
-		// todo: Move to an *adjacent* tile?
-		STEP: 6,
-		// Move along entire path
-		TRAVERSE: 7,
-		EXPLORE: 8,
-		TARGET: 9,
-		// Subsystems must provide a method to handle this
-		ATTACK: 11,
-		// Todo
-		ZOOM: 10,
-		CAST: 12,
+	    HALT: 0,
+	    SENSE: 1,
+	    PLAN: 2,
+	    ROTATE: 3,
+	    FACE: 4,
+	    // Move to a point
+	    // todo: remove?
+	    MOVE: 5,
+	    // Move forward one tile
+	    // todo: Move to an *adjacent* tile?
+	    STEP: 6,
+	    // Move along entire path
+	    TRAVERSE: 7,
+	    EXPLORE: 8,
+	    TARGET: 9,
+	    // Subsystems must provide a method to handle this
+	    ATTACK: 11,
+	    // Todo
+	    ZOOM: 10,
+	    CAST: 12,
 	};
 
 class Ability {
-	constructor(type_, data_) {
-		this.type = type_;
-		this.data = data_;
-		this.used = false;
+    constructor(type_, data_) {
+        this.type = type_;
+        this.data = data_;
+        this.used = false;
 
-		if (this.data.recharge === undefined) {
-			this.data.recharge = obj_ => {
-				obj_.used = false;
-			};
-		}
-	}
+        if (this.data.recharge === undefined) {
+            this.data.recharge = obj_ => {
+                obj_.used = false;
+            };
+        }
+    }
 
-	act(data_) {
-		if (!this.can()) {
-			return null;
-		}
+    act(data_) {
+        if (!this.can()) {
+            return null;
+        }
 
-		this.used = true;
+        this.used = true;
 
-		if (this.data.act === undefined) {
-			return null;
-		}
+        if (this.data.act === undefined) {
+            return null;
+        }
 
-		return this.data.act(data_);
-	}
+        return this.data.act(data_);
+    }
 
-	can() {
-		return !this.used;
-	}
+    can() {
+        return !this.used;
+    }
 
-	recharge() {
-		this.data.recharge(this);
-	}
+    recharge() {
+        this.data.recharge(this);
+    }
 }
 /*
 		If (this.data.can === undefined)
@@ -114,22 +114,22 @@ class Ability {
 
 // Abstract class
 export class MookModel {
-	constructor(token_, settings_) {
-		this.settings = settings_;
-		this._token = token_;
+    constructor(token_, settings_) {
+        this.settings = settings_;
+        this._token = token_;
 
-		const filterWeaponType = weaponChar => this._token.actor.items.filter(item => {
-			if (item.type !== 'weapon') {
-				return false;
-			}
+        const filterWeaponType = weaponChar => this._token.actor.items.filter(item => {
+            if (item.type !== 'weapon') {
+                return false;
+            }
 
-			const weaponTypeStr = item.system.type.value;
-			return typeof (weaponTypeStr) === 'string' && weaponTypeStr.slice(-1) === weaponChar;
-		});
+            const weaponTypeStr = item.system.type.value;
+            return typeof (weaponTypeStr) === 'string' && weaponTypeStr.slice(-1) === weaponChar;
+        });
 
-		// This.rangedWeapons = filterWeaponType('R');
+        // This.rangedWeapons = filterWeaponType('R');
 
-		/* this._token.actor.items.filter(el => {
+        /* this._token.actor.items.filter(el => {
 			if (el.type === 'weapon') {
 				const weaponTypeStr = el.system.type.value;
 				//
@@ -143,504 +143,504 @@ export class MookModel {
 			//item.system.type[-1].lower() == 'R'
 		}); */
 
-		this._actions = [];
-		this._targetHistory = [];
+        this._actions = [];
+        this._targetHistory = [];
 
-		this.attacksRemaining = 0;
-		this.zoomsRemaining = 0;
-	}
+        this.attacksRemaining = 0;
+        this.zoomsRemaining = 0;
+    }
 
-	static getMookModel(token_, ...args_) {
-		switch (game.system.id) {
-			case ('dnd5e'):
-				return new MookModel5e(token_, new MookModelSettings5e(token_), ...args_);
-		}
+    static getMookModel(token_, ...args_) {
+        switch (game.system.id) {
+        case ('dnd5e'):
+            return new MookModel5e(token_, new MookModelSettings5e(token_), ...args_);
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	// Do not override these
-	async attack(action_) {
-		_attack(action_);
-	}
+    // Do not override these
+    async attack(action_) {
+        _attack(action_);
+    }
 
-	haltAction() {
-		return {actionType: ActionType.HALT, cost: 0};
-	}
+    haltAction() {
+        return {actionType: ActionType.HALT, cost: 0};
+    }
 
-	planAction() {
-		return {actionType: ActionType.PLAN, cost: 0};
-	}
+    planAction() {
+        return {actionType: ActionType.PLAN, cost: 0};
+    }
 
-	rotateAction(deg_) {
-		return {
-			actionType: ActionType.ROTATE,
-			cost: this.settings.rotationCost,
-			data: deg_,
-		};
-	}
+    rotateAction(deg_) {
+        return {
+            actionType: ActionType.ROTATE,
+            cost: this.settings.rotationCost,
+            data: deg_,
+        };
+    }
 
-	senseAction() {
-		return {actionType: ActionType.SENSE, cost: 0};
-	}
+    senseAction() {
+        return {actionType: ActionType.SENSE, cost: 0};
+    }
 
-	// Reset the mook model's resources for use
-	startTurn() {
-		this.resetResources(); this._startTurn();
-	}
+    // Reset the mook model's resources for use
+    startTurn() {
+        this.resetResources(); this._startTurn();
+    }
 
-	stepAction() {
-		return {actionType: ActionType.STEP, cost: 1};
-	}
+    stepAction() {
+        return {actionType: ActionType.STEP, cost: 1};
+    }
 
-	resetResources() {
-		this._resetResources();
-	}
+    resetResources() {
+        this._resetResources();
+    }
 
-	// Override as needed
-	exploreActions() {
-		const ret = [];
+    // Override as needed
+    exploreActions() {
+        const ret = [];
 
-		switch (this.settings.mookInitiative) {
-			case MookInitiative.DO_NOTHING:
-				ret.push(this.haltAction());
-				break;
-			case MookInitiative.ROTATE:
-				ret.push(this.randomRotateAction());
-				break;
-			case MookInitiative.CREEP:
-				ret.push(this.stepAction());
-				break;
-			case MookInitiative.WANDER:
-				ret.push(this.randomRotateAction());
-				ret.push(this.stepAction());
-				break;
-		}
+        switch (this.settings.mookInitiative) {
+        case MookInitiative.DO_NOTHING:
+            ret.push(this.haltAction());
+            break;
+        case MookInitiative.ROTATE:
+            ret.push(this.randomRotateAction());
+            break;
+        case MookInitiative.CREEP:
+            ret.push(this.stepAction());
+            break;
+        case MookInitiative.WANDER:
+            ret.push(this.randomRotateAction());
+            ret.push(this.stepAction());
+            break;
+        }
 
-		return ret;
-	}
+        return ret;
+    }
 
-	faceAction(token_) {
-		return {actionType: ActionType.FACE, data: token_};
-	}
+    faceAction(token_) {
+        return {actionType: ActionType.FACE, data: token_};
+    }
 
-	meleAttackAction() {
-		return {actionType: ActionType.ATTACK, data: {weapon: this.meleWeapon}};
-	}
+    meleAttackAction() {
+        return {actionType: ActionType.ATTACK, data: {weapon: this.meleWeapon}};
+    }
 
-	rangedAttackAction() {
-		return {actionType: ActionType.ATTACK, data: {weapon: this.rangedWeapon}};
-	}
+    rangedAttackAction() {
+        return {actionType: ActionType.ATTACK, data: {weapon: this.rangedWeapon}};
+    }
 
-	randomRotateAction() {
-		return this.rotateAction(45 * (Math.random() > 0.5 ? 1 : -1));
-	}
+    randomRotateAction() {
+        return this.rotateAction(45 * (Math.random() > 0.5 ? 1 : -1));
+    }
 
-	_resetResources() {
+    _resetResources() {
 
-	}
+    }
 
-	_startTurn() {
+    _startTurn() {
 
-	}
+    }
 
-	zoom() {
-		return this.time;
-	}
+    zoom() {
+        return this.time;
+    }
 
-	// Subclasses MUST override
-	_attack(action_) {
-		throw 'Game system not supported';
-	}
+    // Subclasses MUST override
+    _attack(action_) {
+        throw 'Game system not supported';
+    }
 
-	// Do not override
+    // Do not override
 
-	/*
+    /*
 	 * Get grid distance. This is the localized distance units so could be feet, meters, or something else.
 	 * NOTE: Not sure if this is correct, there was no units associated with this so I assume it was the localized
 	 *   unit.
 	 */
-	get gridDistance() {
-		return game.scenes.active.grid.distance;
-	}
+    get gridDistance() {
+        return game.scenes.active.grid.distance;
+    }
 
-	/**
+    /**
 	 * Does the mook token have a melee attack? true on yes, false on no.
 	 * Note: Spelled wrong? I see this being a problem.
 	 */
-	get hasMele() {
-		return this.settings.useMele;
-	}
+    get hasMele() {
+        return this.settings.useMele;
+    }
 
-	/**
+    /**
 	 * Does the mook have a ranged attack.
 	*/
-	get hasRanged() {
-		return this.settings.useRanged;
-	}
+    get hasRanged() {
+        return this.settings.useRanged;
+    }
 
-	/**
+    /**
 	 * Get if the token can see.
 	 */
-	get hasSight() {
-		return this.token.hasSight;
-	}
+    get hasSight() {
+        return this.token.hasSight;
+    }
 
-	/**
+    /**
 	 * Get if the token has vision. Different from being able to see in that there may be no vision for the token?
 	 */
-	get hasVision() {
-		return this.settings.useSight && this.hasSight;
-	}
+    get hasVision() {
+        return this.settings.useSight && this.hasSight;
+    }
 
-	/**
+    /**
 	 * Get the token object.
 	 */
-	get token() {
-		return this._token;
-	}
+    get token() {
+        return this._token;
+    }
 
-	/**
+    /**
 	 * Add a target to the target history for the token.
 	 * @param {} target_
 	 */
-	addTarget(target_) {
-		this._targetHistory.push(target_);
-	}
+    addTarget(target_) {
+        this._targetHistory.push(target_);
+    }
 
-	get firstTarget() {
-		return this._targetHistory.length === 0 ? null : this._targetHistory[0];
-	}
+    get firstTarget() {
+        return this._targetHistory.length === 0 ? null : this._targetHistory[0];
+    }
 
-	get lastTarget() {
-		return this._targetHistory.length === 0 ? null : this._targetHistory[this._targetHistory.length - 1];
-	}
+    get lastTarget() {
+        return this._targetHistory.length === 0 ? null : this._targetHistory[this._targetHistory.length - 1];
+    }
 
-	get targetHistory() {
-		return this._targetHistory;
-	}
+    get targetHistory() {
+        return this._targetHistory;
+    }
 
-	// Override as needed
-	get attacksPerTurn() {
-		return 1;
-	}
+    // Override as needed
+    get attacksPerTurn() {
+        return 1;
+    }
 
-	get canAttack() {
-		return this.attacksRemaining > 0;
-	}
+    get canAttack() {
+        return this.attacksRemaining > 0;
+    }
 
-	// Can the token do something to increase its movement range?
-	get canZoom() {
-		return this.zoomsRemaining > 0;
-	}
+    // Can the token do something to increase its movement range?
+    get canZoom() {
+        return this.zoomsRemaining > 0;
+    }
 
-	getHealthPercent(token_) {
-		return this.getCurrentHealth(token_) / this.getMaxHealth(token_);
-	}
+    getHealthPercent(token_) {
+        return this.getCurrentHealth(token_) / this.getMaxHealth(token_);
+    }
 
-	// Todo: Advanced weapon selection
-	get meleWeapon() {
-		return this.hasMele ? this.meleWeapons[0] : null;
-	}
+    // Todo: Advanced weapon selection
+    get meleWeapon() {
+        return this.hasMele ? this.meleWeapons[0] : null;
+    }
 
-	get rangedWeapon() {
-		return this.hasRanged ? this.rangedWeapons[0] : null;
-	}
+    get rangedWeapon() {
+        return this.hasRanged ? this.rangedWeapons[0] : null;
+    }
 
-	get zoomsPerTurn() {
-		return 1;
-	}
+    get zoomsPerTurn() {
+        return 1;
+    }
 
-	// Extensions must override these methods
-	get meleRange() {
-		throw 'Game system not supported';
-	}
+    // Extensions must override these methods
+    get meleRange() {
+        throw 'Game system not supported';
+    }
 
-	get rangedRange() {
-		throw 'Game system not supported';
-	}
+    get rangedRange() {
+        throw 'Game system not supported';
+    }
 
-	getCurrentHealth(token_) {
-		throw 'Game system not supported';
-	}
+    getCurrentHealth(token_) {
+        throw 'Game system not supported';
+    }
 
-	getMaxHealth(token_) {
-		throw 'Game system not supported';
-	}
+    getMaxHealth(token_) {
+        throw 'Game system not supported';
+    }
 
-	// Resource measuring how much a token can do on their turn. It takes one time unit for a token to move one tile
-	get time() {
-		throw 'Game system not supported';
-	}
+    // Resource measuring how much a token can do on their turn. It takes one time unit for a token to move one tile
+    get time() {
+        throw 'Game system not supported';
+    }
 }
 
 class MookModel5e extends MookModel {
-	constructor(token_, settings_, ...args_) {
-		super(token_, settings_);
+    constructor(token_, settings_, ...args_) {
+        super(token_, settings_);
 
-		this.actionsUsed = 0;
-		// Creatures in 5e may only use one bonus action
-		this.bonusActionUsed = false;
-	}
+        this.actionsUsed = 0;
+        // Creatures in 5e may only use one bonus action
+        this.bonusActionUsed = false;
+    }
 
-	async doAttack(name_) {
-		if (game.modules.get('betterrolls5e')?.active) {
-			BetterRolls.quickRoll(name_);
-		} else {
-			game.dnd5e.documents.macro.rollItem(name_);
-		}
-	}
+    async doAttack(name_) {
+        if (game.modules.get('betterrolls5e')?.active) {
+            BetterRolls.quickRoll(name_);
+        } else {
+            game.dnd5e.documents.macro.rollItem(name_);
+        }
+    }
 
-	async attack(action_) {
-		// As implemented, DnD5e doesn't care what type of attack it is, but it must still be an attack
-		if (action_.actionType !== ActionType.ATTACK) {
-			return;
-		}
+    async attack(action_) {
+        // As implemented, DnD5e doesn't care what type of attack it is, but it must still be an attack
+        if (action_.actionType !== ActionType.ATTACK) {
+            return;
+        }
 
-		if (!this.canAttack) {
-			return;
-		}
+        if (!this.canAttack) {
+            return;
+        }
 
-		const {name} = action_.data.weapon;
+        const {name} = action_.data.weapon;
 
-		this._actions.filter(a => a.type === 'attack' && a.can()).forEach(a => {
-			if (a.duration === 'full') {
-				if (this.actionsUsed >= this.settings.actionsPerTurn) {
-					return;
-				}
+        this._actions.filter(a => a.type === 'attack' && a.can()).forEach(a => {
+            if (a.duration === 'full') {
+                if (this.actionsUsed >= this.settings.actionsPerTurn) {
+                    return;
+                }
 
-				for (let i = 0; i < this.settings.attacksPerAction; ++i) {
-					this.doAttack(name);
-				}
+                for (let i = 0; i < this.settings.attacksPerAction; ++i) {
+                    this.doAttack(name);
+                }
 
-				++this.actionsUsed;
-				// Todo: a.act is doAttack
-				a.act();
-			} else if (a.duration === 'bonus') {
-				if (this.bonusActionUsed) {
-					return;
-				}
+                ++this.actionsUsed;
+                // Todo: a.act is doAttack
+                a.act();
+            } else if (a.duration === 'bonus') {
+                if (this.bonusActionUsed) {
+                    return;
+                }
 
-				for (let i = 0; i < this.settings.attacksPerBonusAction; ++i) {
-					this.doAttack(name);
-				}
+                for (let i = 0; i < this.settings.attacksPerBonusAction; ++i) {
+                    this.doAttack(name);
+                }
 
-				this.bonusActionUsed = true;
-				a.act();
-			} else {
-				for (let i = 0; i < this.settings.attacksPerFreeAction; ++i) {
-					this.doAttack(name);
-				}
+                this.bonusActionUsed = true;
+                a.act();
+            } else {
+                for (let i = 0; i < this.settings.attacksPerFreeAction; ++i) {
+                    this.doAttack(name);
+                }
 
-				a.act();
-			}
-		});
-	}
+                a.act();
+            }
+        });
+    }
 
-	_resetResources() {
-		this._actions = [];
-		this.actionsUsed = 0;
-		this.bonusActionUsed = 0;
-	}
+    _resetResources() {
+        this._actions = [];
+        this.actionsUsed = 0;
+        this.bonusActionUsed = 0;
+    }
 
-	_startTurn() {
-		if (this.useDashAction) {
-			const dashAct = () => this.time;
+    _startTurn() {
+        if (this.useDashAction) {
+            const dashAct = () => this.time;
 
-			for (let i = 0; i < this.settings.dashActionsPerTurn; ++i) {
-				this._actions.push(new Ability('dash', {duration: 'full', act: dashAct}));
-			}
+            for (let i = 0; i < this.settings.dashActionsPerTurn; ++i) {
+                this._actions.push(new Ability('dash', {duration: 'full', act: dashAct}));
+            }
 
-			if (this.hasDashBonusAction) {
-				this._actions.push(new Ability('dash', {duration: 'bonus', act: dashAct}));
-			}
+            if (this.hasDashBonusAction) {
+                this._actions.push(new Ability('dash', {duration: 'bonus', act: dashAct}));
+            }
 
-			if (this.hasDashFreeAction) {
-				this._actions.push(new Ability('dash', {duration: 'free', act: dashAct}));
-			}
-		}
+            if (this.hasDashFreeAction) {
+                this._actions.push(new Ability('dash', {duration: 'free', act: dashAct}));
+            }
+        }
 
-		for (let i = 0; i < this.settings.actionsPerTurn; ++i) {
-			this._actions.push(new Ability('attack', {duration: 'full'}));
-		}
+        for (let i = 0; i < this.settings.actionsPerTurn; ++i) {
+            this._actions.push(new Ability('attack', {duration: 'full'}));
+        }
 
-		if (this.settings.hasBonusAttack) {
-			this._actions.push(new Ability('attack', {duration: 'bonus'}));
-		}
+        if (this.settings.hasBonusAttack) {
+            this._actions.push(new Ability('attack', {duration: 'bonus'}));
+        }
 
-		if (this.settings.hasFreeAttack) {
-			this._actions.push(new Ability('attack', {duration: 'free'}));
-		}
-	}
+        if (this.settings.hasFreeAttack) {
+            this._actions.push(new Ability('attack', {duration: 'free'}));
+        }
+    }
 
-	zoom() {
-		if (!this.canZoom) {
-			return 0;
-		}
+    zoom() {
+        if (!this.canZoom) {
+            return 0;
+        }
 
-		const dashActions = this._actions.filter(a => a.type === 'dash' && a.can());
+        const dashActions = this._actions.filter(a => a.type === 'dash' && a.can());
 
-		if (dashActions.length === 0) {
-			return 0;
-		}
+        if (dashActions.length === 0) {
+            return 0;
+        }
 
-		const takeAction = (arr, str) => {
-			const actions = arr.filter(a => a.duration === str);
+        const takeAction = (arr, str) => {
+            const actions = arr.filter(a => a.duration === str);
 
-			if (actions.length !== 0) {
-				return actions[0].act();
-			}
+            if (actions.length !== 0) {
+                return actions[0].act();
+            }
 
-			return 0;
-		};
+            return 0;
+        };
 
-		const freeZoom = takeAction(dashActions, 'free');
-		if (freeZoom > 0) {
-			return freeZoom;
-		}
+        const freeZoom = takeAction(dashActions, 'free');
+        if (freeZoom > 0) {
+            return freeZoom;
+        }
 
-		const bonusZoom = takeAction(dashActions, 'bonus');
-		if (bonusZoom > 0) {
-			this.bonusActionUsed = true;
-			return bonusZoom;
-		}
+        const bonusZoom = takeAction(dashActions, 'bonus');
+        if (bonusZoom > 0) {
+            this.bonusActionUsed = true;
+            return bonusZoom;
+        }
 
-		const fullZoom = takeAction(dashActions, 'full');
-		if (fullZoom > 0) {
-			++this.actionsUsed;
-			return fullZoom;
-		}
+        const fullZoom = takeAction(dashActions, 'full');
+        if (fullZoom > 0) {
+            ++this.actionsUsed;
+            return fullZoom;
+        }
 
-		console.log('mookAI | Hit unreachable state: MookModel5e::zoom ()');
-		return 0;
-	}
+        console.log('mookAI | Hit unreachable state: MookModel5e::zoom ()');
+        return 0;
+    }
 
-	filterWeaponType(weaponChar) {
-		return this.token.actor.itemTypes.weapon.filter(item => {
-			const weaponTypeStr = item.system.type.value;
-			return typeof (weaponTypeStr) === 'string' && weaponTypeStr.slice(-1) === weaponChar;
-			// Return w.hasAttack && w.actionType === "rwak";
-		});
-	}
+    filterWeaponType(weaponChar) {
+        return this.token.actor.itemTypes.weapon.filter(item => {
+            const weaponTypeStr = item.system.type.value;
+            return typeof (weaponTypeStr) === 'string' && weaponTypeStr.slice(-1) === weaponChar;
+            // Return w.hasAttack && w.actionType === "rwak";
+        });
+    }
 
-	get meleWeapons() {
-		return this.filterWeaponType('M')
-	}
+    get meleWeapons() {
+        return this.filterWeaponType('M')
+    }
 
-	get rangedWeapons() {
-		return this.filterWeaponType('R')
-	}
+    get rangedWeapons() {
+        return this.filterWeaponType('R')
+    }
 
-	get _hasMele() {
-		return this.meleWeapons.length > 0;
-	}
+    get _hasMele() {
+        return this.meleWeapons.length > 0;
+    }
 
-	/**
+    /**
 	 * Probably deprecating this? I don't know if this makes sense to have. If a token "has ranged" why care
 	 * if it has a weapon? Foundry seems to have changed it's model regarding weapon attacks since this was first
 	 * written.
 	 */
-	get _hasRanged() {
-		return this.rangedWeapons.length > 0;
-	}
+    get _hasRanged() {
+        return this.rangedWeapons.length > 0;
+    }
 
-	/**
+    /**
 	 * Probably deprecating this? See ranged for logic.
 	 */
-	get meleRange() {
-		const dist = this.meleWeapon?.system?.range?.value;
+    get meleRange() {
+        const dist = this.meleWeapon?.system?.range?.value;
 
-		if (!dist) {
-			return this.settings.standardMeleWeaponTileRange;
-		}
+        if (!dist) {
+            return this.settings.standardMeleWeaponTileRange;
+        }
 
-		return Math.max(Math.floor(dist / this.gridDistance), 1);
-	}
+        return Math.max(Math.floor(dist / this.gridDistance), 1);
+    }
 
-	get rangedRange() {
-		const {rangedWeapon} = this;
-		const dist = rangedWeapon?.system?.range?.value;
+    get rangedRange() {
+        const {rangedWeapon} = this;
+        const dist = rangedWeapon?.system?.range?.value;
 
-		//
-		// Note: Not sure about this, it seems we need a ranged "weapon" to attack. So without one, we'll throw an exception.
-		if (!dist) {
-			return this.settings.standardRangedWeaponTileRange;
-		}
+        //
+        // Note: Not sure about this, it seems we need a ranged "weapon" to attack. So without one, we'll throw an exception.
+        if (!dist) {
+            return this.settings.standardRangedWeaponTileRange;
+        }
 
-		return Math.max(Math.floor(dist / this.gridDistance), 1);
-	}
+        return Math.max(Math.floor(dist / this.gridDistance), 1);
+    }
 
-	get canAttack() {
-		const attacks = this._actions.filter(a => a.type === 'attack');
+    get canAttack() {
+        const attacks = this._actions.filter(a => a.type === 'attack');
 
-		if (this.actionsUsed < this.settings.actionsPerTurn
+        if (this.actionsUsed < this.settings.actionsPerTurn
 			&& attacks.some(a => a.data.duration === 'full' && a.can())) {
-			return true;
-		}
+            return true;
+        }
 
-		if (!this.bonusActionUsed && attacks.some(a => a.data.duration === 'bonus' && a.can())) {
-			return true;
-		}
+        if (!this.bonusActionUsed && attacks.some(a => a.data.duration === 'bonus' && a.can())) {
+            return true;
+        }
 
-		return attacks.some(a => a.data.duration === 'free' && a.can());
-	}
+        return attacks.some(a => a.data.duration === 'free' && a.can());
+    }
 
-	get canZoom() {
-		const dashes = this._actions.filter(a => a.type === 'dash');
+    get canZoom() {
+        const dashes = this._actions.filter(a => a.type === 'dash');
 
-		if (this.actionsUsed < this.settings.actionsPerTurn
+        if (this.actionsUsed < this.settings.actionsPerTurn
 			&& dashes.some(a => a.data.duration === 'full' && a.can())) {
-			return true;
-		}
+            return true;
+        }
 
-		if (!this.bonusActionUsed && dashes.some(a => a.data.duration === 'bonus' && a.can())) {
-			return true;
-		}
+        if (!this.bonusActionUsed && dashes.some(a => a.data.duration === 'bonus' && a.can())) {
+            return true;
+        }
 
-		return dashes.some(a => a.data.duration === 'free' && a.can());
-	}
+        return dashes.some(a => a.data.duration === 'free' && a.can());
+    }
 
-	// Get various token data
-	getCurrentHealth(token_ = this.token) {
-		return token_.actor.system.attributes.hp.value;
-	}
+    // Get various token data
+    getCurrentHealth(token_ = this.token) {
+        return token_.actor.system.attributes.hp.value;
+    }
 
-	getMaxHealth(token_ = this.token) {
-		return token_.actor.system.attributes.hp.max;
-	}
+    getMaxHealth(token_ = this.token) {
+        return token_.actor.system.attributes.hp.max;
+    }
 
-	get hasDashAction() {
-		return this.settings.dashActionsPerTurn > 0;
-	}
+    get hasDashAction() {
+        return this.settings.dashActionsPerTurn > 0;
+    }
 
-	get hasDashBonusAction() {
-		return this.settings.hasDashBonusAction;
-	}
+    get hasDashBonusAction() {
+        return this.settings.hasDashBonusAction;
+    }
 
-	get hasDashFreeAction() {
-		return this.settings.hasDashFreeAction;
-	}
+    get hasDashFreeAction() {
+        return this.settings.hasDashFreeAction;
+    }
 
-	get useDashAction() {
-		return this.settings.useDashAction
+    get useDashAction() {
+        return this.settings.useDashAction
 			&& (this.hasDashAction || this.hasDashBonusAction || this.hasDashFreeAction);
-	}
+    }
 
-	// A measure of the amount of time a mook has to do stuff
-	// todo: evaluate units
-	get time() {
-		let speed = parseInt(this.token.actor.system.attributes.movement.walk, 10);
+    // A measure of the amount of time a mook has to do stuff
+    // todo: evaluate units
+    get time() {
+        let speed = parseInt(this.token.actor.system.attributes.movement.walk, 10);
 
-		speed ||= 30;
+        speed ||= 30;
 
-		return speed / this.gridDistance;
-	}
+        return speed / this.gridDistance;
+    }
 
-	get zoomsPerTurn() {
-		if (!this.useDashAction) {
-			return 0;
-		}
+    get zoomsPerTurn() {
+        if (!this.useDashAction) {
+            return 0;
+        }
 
-		return this.settings.dashActionsPerTurn + this.hasDashBonusAction + this.hasDashFreeAction;
-	}
+        return this.settings.dashActionsPerTurn + this.hasDashBonusAction + this.hasDashFreeAction;
+    }
 }
