@@ -194,6 +194,7 @@ export class PathManager {
             const aDistance = a.distanceToDestination();
             const bDistance = b.distanceToDestination();
             //
+            // TODO: More explanation or make this cleaner.
             // Treat NaN as infinity.
             // If a is NaN, then b < a
             // If b is NaN, then a < b

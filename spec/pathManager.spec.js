@@ -27,8 +27,6 @@ class TextNode extends Node {
 
 describe("A* algorithm tests using a generic text representation of the board.",  function () {
     it("Find shortest path for simple 10x10 grid.", function () {
-        //fs.readFile("monolitic.txt", "binary");
-
         const gridText = fs.readFileSync("./spec/map1.txt", "utf-8");
 
         const gridArray = gridText.split('\n').map(row => {
@@ -47,13 +45,81 @@ describe("A* algorithm tests using a generic text representation of the board.",
         const fromsourceGrid = grid.grid.map(row => row.map(col => {
             col.previousNode?.position
         }))
-        
-        fromsourceGrid.forEach(row => {
-            row.forEach(col => process.stdout.write(col + "    "))
-            console.log("")
+    
+        expect(path.length).toBe(3);
+        const pointPath = path.map(position => position.position);
+        expect(pointPath).toEqual([
+            new Point(2, 2),
+            new Point(1, 1),
+            new Point(0, 0),
+        ])
+    })
+
+    it("Find short path around a wall.", function () {
+        const gridText = fs.readFileSync("./spec/map2.txt", "utf-8");
+
+        const gridArray = gridText.split('\n').map(row => {
+            return row.split(' ');
         })
-        console.log(path)
-        expect(path.length).toBe(1);
+        const grid = new Grid(gridArray, (position, value) => new TextNode(position, value));
+
+        const startPoint = new Point(0, 0);
+        const endPoint = new Point(0, 2);
+
+        const path = PathManager.findPath(grid, startPoint, endPoint);
+
+        expect(path.length).toBe(3);
+        const pointPath = path.map(position => position.position);
+        expect(pointPath).toEqual([
+            new Point(0, 2),
+            new Point(1, 1),
+            new Point(0, 0),
+        ])
+    })
+
+    it("Find short path around L wall.", function () {
+        const gridText = fs.readFileSync("./spec/map2.txt", "utf-8");
+
+        const gridArray = gridText.split('\n').map(row => {
+            return row.split(' ');
+        })
+        const grid = new Grid(gridArray, (position, value) => new TextNode(position, value));
+
+        const startPoint = new Point(2, 7);
+        const endPoint = new Point(7, 2);
+
+        const path = PathManager.findPath(grid, startPoint, endPoint);
+
+        expect(path.length).toBe(9);
+
+        //
+        // Weird that it doesn't just go over then down. But this is actually just as fast
+        // when every step consts 1 movement.
+        //
+        //  0 1 2 3 4 5 6 7 8 9
+        // 0 . X . . . . . . . .
+        // 1 . . . . . . . . . .
+        // 2 . . . . - . . S . .
+        // 3 . . . / X - / . . .
+        // 4 . . / . X . . . . .
+        // 5 . . | . X X X . . .
+        // 6 . . | . . . . . . .
+        // 7 . . D . . . . . . .
+        // 8 . . . . . . . . . .
+        // 9 . . . . . . . . . .
+        //
+        const pointPath = path.map(position => position.position);
+        expect(pointPath).toEqual([
+            new Point(7, 2),
+            new Point(6, 2),
+            new Point(5, 2),
+            new Point(4, 2),
+            new Point(3, 3),
+            new Point(2, 4),
+            new Point(3, 5),
+            new Point(3, 6),
+            new Point(2, 7),
+        ])
     })
 })
 
