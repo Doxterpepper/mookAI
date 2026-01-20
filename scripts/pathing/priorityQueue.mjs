@@ -6,7 +6,6 @@
  * 
  * There should be no foundryvtt API calls in this so it can be unit tested.
  */
-
 export class PriorityQueue {
     constructor(comparisonOperator = (left, right) => { return left < right })
     {
@@ -20,23 +19,8 @@ export class PriorityQueue {
     }
 
     pop() {
-        //
-        // Heap removal algorithm:
-        // 1. Get the front item.
-        // 2. Swap the first and last item of the array.
-        // 3. Pop the last item of the array.
-        // 4. Run the heap algorithm to satisfy the heap properties.
-        // 5. Return the front item.
-        //
-        const front = this.tree[0]
-        this.tree[0] = this.tree[this.tree.length - 1];
-        this.tree.pop();
-
-        //
-        // heapify
-        //
+        const front = this.tree.shift();
         this._reheap();
-
         return front;
     }
 
@@ -92,7 +76,6 @@ export class PriorityQueue {
      */
     _reheap() {
         const startElement = Math.floor(this.tree.length / 2);
-        console.log("start element - " + startElement);
         for (let i = startElement; i >= 0; i--) {
             this._makeHeap(i);
         }
@@ -111,11 +94,11 @@ export class PriorityQueue {
         const rightValue = this.tree[rightIndex];
         let swapIndex = root;
 
-        if (leftIndex < this.tree.length && this.comparisonOperator(leftValue, this.tree[swapIndex])) {
+        if (leftIndex < this.tree.length && leftValue && this.comparisonOperator(leftValue, this.tree[swapIndex])) {
             swapIndex = leftIndex;
         }
 
-        if (rightIndex < this.tree.length && this.comparisonOperator(rightValue, this.tree[swapIndex])) {
+        if (rightIndex < this.tree.length && rightValue && this.comparisonOperator(rightValue, this.tree[swapIndex])) {
             swapIndex = rightIndex;
         }
 

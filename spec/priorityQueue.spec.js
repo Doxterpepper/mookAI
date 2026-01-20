@@ -44,7 +44,6 @@ describe("Priority Queue tests.", function () {
         let priorityQueue = new PriorityQueue();
         priorityQueue.tree = tree;
 
-        console.log("_reheap test");
         priorityQueue._reheap();
 
         //
@@ -74,6 +73,114 @@ describe("Priority Queue tests.", function () {
 
         priorityQueue.push(15);
         expect(priorityQueue.tree).toEqual([15, 40, 49, 100, 65])
-    })
+    });
+
+    it("Priority queue has the smallest value at the front", function () {
+        let priorityQueue = new PriorityQueue();
+
+        priorityQueue.push(10);
+
+        expect(priorityQueue.front()).toBe(10);
+
+        priorityQueue.push(11);
+        expect(priorityQueue.front()).toBe(10);
+
+
+        priorityQueue.push(25);
+        expect(priorityQueue.front()).toBe(10);
+    });
+
+    it("Priority queue pop leaves the smallest value at the front", function () {
+        
+        let priorityQueue = new PriorityQueue();
+        priorityQueue.tree = [1, 78, 8, 15, 25, 30];
+        priorityQueue._reheap();
+        
+        let value = priorityQueue.pop();
+        expect(value).toBe(1);
+
+
+        value = priorityQueue.pop();
+        expect(value).toBe(8);
+
+        value = priorityQueue.pop();
+        expect(value).toBe(15);
+
+        value = priorityQueue.pop();
+        expect(value).toBe(25);
+
+        value = priorityQueue.pop();
+        expect(value).toBe(30);
+
+        value = priorityQueue.pop();
+        expect(value).toBe(78);
+    });
+
+    it("Make heap with custom comparison function", function () {
+        let createElement = value => {
+            return {
+                rank: 1,
+                value: value
+            }
+        }
+
+        let comparison = (a, b) => {
+            return a.rank < b.rank;
+        }
+
+        let queue = new PriorityQueue(comparison);
+        
+        queue.push(createElement(1));
+
+        let currentArr = queue.tree.map(el => el.value);
+        expect(currentArr).toEqual([1]);
+
+        queue.push(createElement(2));
+
+        currentArr = queue.tree.map(el => el.value);
+        expect(currentArr).toEqual([1, 2]);
+
+        queue.push(createElement(3));
+
+        currentArr = queue.tree.map(el => el.value);
+        expect(currentArr).toEqual([1, 2, 3]);
+
+        queue.push({
+            rank: 0,
+            value: 10
+        })
+
+        expect(queue.front().value).toBe(10);
+        currentArr = queue.tree.map(el => el.value);
+        expect(currentArr).toEqual([10, 1, 3, 2]);
+    });
+
+    it("Priority queue works a a FIFO queue when elements have the same rank", function () {
+        let createElement = value => {
+            return {
+                rank: 1,
+                value: value
+            }
+        }
+
+        let comparison = (a, b) => {
+            return a.rank < b.rank;
+        }
+        
+        let queue = new PriorityQueue(comparison)
+        for (let i = 0; i < 10; i++) {
+            const element = createElement(i);
+            queue.push(element);
+        }
+
+        const arr = queue.tree.map(el => el.value);
+        expect(arr).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+        for (let i = 0; i < 10; i++) {
+            const element = queue.pop();
+            //console.log(queue.tree.map(el => el.value));
+            expect(element.value).toBe(i);
+        }
+    });
 });
  
