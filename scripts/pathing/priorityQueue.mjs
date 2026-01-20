@@ -32,6 +32,10 @@ export class PriorityQueue {
         return null;
     }
 
+    get length() {
+        return this.tree.length;
+    }
+
     /**
      * Get the left index of root element.
      * @param {number} root Index of the root element.
