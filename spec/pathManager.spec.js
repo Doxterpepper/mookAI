@@ -121,6 +121,24 @@ describe("A* algorithm tests using a generic text representation of the board.",
             new Point(2, 7),
         ])
     })
+    it("A* on map with no path to destination", function () {
+        const gridText = fs.readFileSync("./spec/map3.txt", "utf-8");
+
+        const gridArray = gridText.split('\n').map(row => {
+            return row.split(' ');
+        })
+        const grid = new Grid(gridArray, (position, value) => new TextNode(position, value));
+
+        const startPoint = new Point(5, 4);
+        const endPoint = new Point(0, 0);
+
+        const path = PathManager.findPath(grid, startPoint, endPoint);
+        const fromsourceGrid = grid.grid.map(row => row.map(col => {
+            col.previousNode?.position
+        }))
+    
+        expect(path.length).toBe(0);
+    })
 })
 
 describe("Grid represents some underlying game board", function () {

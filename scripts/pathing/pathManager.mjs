@@ -275,5 +275,7 @@ export class PathManager {
                 }
             })
         }
+
+        return [];
     }
 }
