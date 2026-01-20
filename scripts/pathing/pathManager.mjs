@@ -78,7 +78,7 @@ export class Node {
 
     pathFrom() {
         let pathArr = [];
-        let maxDepth = 15; // TODO: Smarter value, don't hardcode.
+        let maxDepth = 100; // TODO: Smarter value, don't hardcode.
         let currentNode = this;
         while (maxDepth > 0 && currentNode !== null) {
             maxDepth--;
@@ -87,7 +87,6 @@ export class Node {
             currentNode = currentNode.previousNode;
         }
         if (maxDepth === 0) {
-            console.log(pathArr)
             throw "Hit max depth!";
         }
         return pathArr;
@@ -258,7 +257,7 @@ export class PathManager {
                 // If the neighborTotal is undefined, hence not being visited yet, then this is by default the shortest known
                 // path to the neighbor.
                 //
-                if (isNaN(neighborTotal) || distanceToNeighbor < neighborTotal) {
+                if (isNaN(neighborTotal) || distanceToNeighbor < this.fromSource) {
                     neighbor.fromSource = distanceToNeighbor;
                     neighbor.previousNode = currentNode;
                     //

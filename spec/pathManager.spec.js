@@ -41,16 +41,19 @@ describe("A* algorithm tests using a generic text representation of the board.",
         // . . . . .
         // . . . . D
         const startPoint = new Point(0, 0);
-        const endPoint = new Point(1, 5);
+        const endPoint = new Point(2, 2);
 
         const path = PathManager.findPath(grid, startPoint, endPoint);
-        const fromsourceGrid = grid.grid.map(row => row.map(col => col.fromSource))
+        const fromsourceGrid = grid.grid.map(row => row.map(col => {
+            col.previousNode?.position
+        }))
         
         fromsourceGrid.forEach(row => {
             row.forEach(col => process.stdout.write(col + "    "))
             console.log("")
         })
-        expect(path).toBe(5);
+        console.log(path)
+        expect(path.length).toBe(1);
     })
 })
 
