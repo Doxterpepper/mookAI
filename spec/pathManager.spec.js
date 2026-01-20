@@ -31,12 +31,26 @@ describe("A* algorithm tests using a generic text representation of the board.",
 
         const gridText = fs.readFileSync("./spec/map1.txt", "utf-8");
 
-        const grid = new TextGrid(gridText);
+        const gridArray = gridText.split('\n').map(row => {
+            return row.split(' ');
+        })
+        const grid = new Grid(gridArray, (position, value) => new TextNode(position, value));
 
-        const startPoint = new Point(2, 2);
-        const endPoint = new Point(7, 4);
+        //
+        // S . . . .
+        // . . . . .
+        // . . . . D
+        const startPoint = new Point(0, 0);
+        const endPoint = new Point(1, 5);
 
-        //const path = PathManager.findPath(grid, startPoint, endPoint);
+        const path = PathManager.findPath(grid, startPoint, endPoint);
+        const fromsourceGrid = grid.grid.map(row => row.map(col => col.fromSource))
+        
+        fromsourceGrid.forEach(row => {
+            row.forEach(col => process.stdout.write(col + "    "))
+            console.log("")
+        })
+        expect(path).toBe(5);
     })
 })
 
@@ -67,7 +81,7 @@ describe("Grid represents some underlying game board", function () {
         expect(grid.checkBounds(5, 5)).toBe(true);
     })
 
-    it("Can get unvisited neighbors of a node", function () {
+    it("Can get neighbors of a node", function () {
         const gridText = fs.readFileSync("./spec/map1.txt", "utf-8");
         const gridArray = gridText.split('\n').map(row => {
             return row.split(' ');
@@ -76,32 +90,60 @@ describe("Grid represents some underlying game board", function () {
 
         let neighbors = grid.neighborNodes(new Point(0, 0));
         expect(neighbors.length).toBe(3);
+        expect(neighbors[0]).toBe(grid.getNode(0, 1))
+        expect(neighbors[1]).toBe(grid.getNode(1, 0))
+        expect(neighbors[2]).toBe(grid.getNode(1, 1))
 
         // Check the right top corner.
         neighbors = grid.neighborNodes(new Point(0, grid.width - 1));
         expect(neighbors.length).toBe(3);
+        expect(neighbors[0]).toBe(grid.getNode(0, 8))
+        expect(neighbors[1]).toBe(grid.getNode(1, 8))
+        expect(neighbors[2]).toBe(grid.getNode(1, 9))
 
         // Check bottom right corner.
         neighbors = grid.neighborNodes(new Point(grid.height - 1, grid.width - 1));
         expect(neighbors.length).toBe(3);
+        expect(neighbors[0]).toBe(grid.getNode(8, 8))
+        expect(neighbors[1]).toBe(grid.getNode(8, 9))
+        expect(neighbors[2]).toBe(grid.getNode(9, 8))
 
         // Check bottom left corner.
         neighbors = grid.neighborNodes(new Point(grid.height - 1, 0));
         expect(neighbors.length).toBe(3);
+        expect(neighbors[0]).toBe(grid.getNode(8, 0))
+        expect(neighbors[1]).toBe(grid.getNode(8, 1))
+        expect(neighbors[2]).toBe(grid.getNode(9, 1))
 
-        // Check top edge.
+        // Check left edge.
         neighbors = grid.neighborNodes(new Point(1, 0));
         expect(neighbors.length).toBe(5);
+        expect(neighbors[0]).toBe(grid.getNode(0, 0))
+        expect(neighbors[1]).toBe(grid.getNode(0, 1))
+        expect(neighbors[2]).toBe(grid.getNode(1, 1))
+        expect(neighbors[3]).toBe(grid.getNode(2, 0))
+        expect(neighbors[4]).toBe(grid.getNode(2, 1))
+
 
         // Check right edge.
         neighbors = grid.neighborNodes(new Point(1, grid.width - 1));
         expect(neighbors.length).toBe(5);
+        expect(neighbors[0]).toBe(grid.getNode(0, 8))
+        expect(neighbors[1]).toBe(grid.getNode(0, 9))
+        expect(neighbors[2]).toBe(grid.getNode(1, 8))
+        expect(neighbors[3]).toBe(grid.getNode(2, 8))
+        expect(neighbors[4]).toBe(grid.getNode(2, 9))
 
         // Check bottom edge.
         neighbors = grid.neighborNodes(new Point(grid.height - 1, 1));
         expect(neighbors.length).toBe(5);
+        expect(neighbors[0]).toBe(grid.getNode(8, 0))
+        expect(neighbors[1]).toBe(grid.getNode(8, 1))
+        expect(neighbors[2]).toBe(grid.getNode(8, 2))
+        expect(neighbors[3]).toBe(grid.getNode(9, 0))
+        expect(neighbors[4]).toBe(grid.getNode(9, 2))
 
-        // Check left edge.
+        // Check top edge.
         neighbors = grid.neighborNodes(new Point(0, 1));
         expect(neighbors.length).toBe(5);
 
